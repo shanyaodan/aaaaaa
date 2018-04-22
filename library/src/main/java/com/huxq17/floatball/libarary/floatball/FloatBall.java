@@ -11,6 +11,7 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 
 import com.huxq17.floatball.libarary.FloatBallManager;
 import com.huxq17.floatball.libarary.FloatBallUtil;
@@ -25,8 +26,8 @@ public class FloatBall extends FrameLayout implements ICarrier {
 
     private FloatBallManager floatBallManager;
     private ImageView imageView;
-    private WindowManager.LayoutParams mLayoutParams;
-    private WindowManager windowManager;
+    private RelativeLayout.LayoutParams mLayoutParams;
+    private RelativeLayout windowManager;
     private boolean isFirst = true;
     private boolean isAdded = false;
     private int mTouchSlop;
@@ -50,7 +51,7 @@ public class FloatBall extends FrameLayout implements ICarrier {
             if (mHideHalfLater && !sleep && isAdded) {
                 sleep = true;
                 moveToEdge(false, sleep);
-                mSleepX = mLayoutParams.x;
+                mSleepX = mLayoutParams.leftMargin;
             }
         }
     };
@@ -86,7 +87,7 @@ public class FloatBall extends FrameLayout implements ICarrier {
         }
     }
 
-    public void attachToWindow(WindowManager windowManager) {
+    public void attachToWindow(RelativeLayout windowManager) {
         this.windowManager = windowManager;
         if (!isAdded) {
             windowManager.addView(this, mLayoutParams);
@@ -94,12 +95,12 @@ public class FloatBall extends FrameLayout implements ICarrier {
         }
     }
 
-    public void detachFromWindow(WindowManager windowManager) {
+    public void detachFromWindow(RelativeLayout windowManager) {
         this.windowManager = null;
         if (isAdded) {
             removeSleepRunnable();
             if (getContext() instanceof Activity) {
-                windowManager.removeViewImmediate(this);
+                windowManager.removeView(this);
             } else {
                 windowManager.removeView(this);
             }
@@ -114,7 +115,7 @@ public class FloatBall extends FrameLayout implements ICarrier {
         int height = getMeasuredHeight();
         int width = getMeasuredWidth();
 
-        int curX = mLayoutParams.x;
+        int curX = mLayoutParams.leftMargin;
         if (sleep && curX != mSleepX && !mRunner.isRunning()) {
             sleep = false;
             postSleepRunnable();
@@ -186,14 +187,17 @@ public class FloatBall extends FrameLayout implements ICarrier {
                 touchDown(x, y);
                 break;
             case MotionEvent.ACTION_MOVE:
-                touchMove(x, y);
+
+                    touchMove(x, y);
+
+
                 break;
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_CANCEL:
                 touchUp();
                 break;
         }
-        return super.onTouchEvent(event);
+        return true;
     }
 
     private void touchDown(int x, int y) {
@@ -216,7 +220,9 @@ public class FloatBall extends FrameLayout implements ICarrier {
         mLastX = x;
         mLastY = y;
         if (!isClick) {
-            onMove(deltaX, deltaY);
+            if(!floatBallManager.isMenuShow()) {
+                onMove(deltaX, deltaY);
+            }
         }
     }
 
@@ -243,17 +249,17 @@ public class FloatBall extends FrameLayout implements ICarrier {
         final int screenHeight = floatBallManager.mScreenHeight - statusBarHeight;
         int height = getHeight();
         int destY = 0;
-        if (mLayoutParams.y < 0) {
-            destY = 0 - mLayoutParams.y;
-        } else if (mLayoutParams.y > screenHeight - height) {
-            destY = screenHeight - height - mLayoutParams.y;
+        if (mLayoutParams.topMargin < 0) {
+            destY = 0 - mLayoutParams.topMargin;
+        } else if (mLayoutParams.topMargin > screenHeight - height) {
+            destY = screenHeight - height - mLayoutParams.topMargin;
         }
         if (smooth) {
-            int dx = destX - mLayoutParams.x;
+            int dx = destX - mLayoutParams.leftMargin;
             int duration = getScrollDuration(Math.abs(dx));
             mRunner.start(dx, destY, duration);
         } else {
-            onMove(destX - mLayoutParams.x, destY);
+            onMove(destX - mLayoutParams.leftMargin, destY);
             postSleepRunnable();
         }
     }
@@ -264,7 +270,7 @@ public class FloatBall extends FrameLayout implements ICarrier {
         int halfWidth = width / 2;
         int centerX = (screenWidth / 2 - halfWidth);
         int destX;
-        destX = mLayoutParams.x < centerX ? 0 : screenWidth - width;
+        destX = mLayoutParams.leftMargin < centerX ? 0 : screenWidth - width;
         sleep = false;
         moveToX(true, destX);
     }
@@ -276,11 +282,12 @@ public class FloatBall extends FrameLayout implements ICarrier {
         int centerX = (screenWidth / 2 - halfWidth);
         int destX;
         final int minVelocity = mVelocity.getMinVelocity();
-        if (mLayoutParams.x < centerX) {
-            sleep = forceSleep ? true : Math.abs(mVelocityX) > minVelocity && mVelocityX < 0 || mLayoutParams.x < 0;
+        sleep = false;
+        if (mLayoutParams.leftMargin < centerX) {
+            sleep = forceSleep ? true : Math.abs(mVelocityX) > minVelocity && mVelocityX < 0 || mLayoutParams.leftMargin < 0;
             destX = sleep ? -halfWidth : 0;
         } else {
-            sleep = forceSleep ? true : Math.abs(mVelocityX) > minVelocity && mVelocityX > 0 || mLayoutParams.x > screenWidth - width;
+            sleep = forceSleep ? true : Math.abs(mVelocityX) > minVelocity && mVelocityX > 0 || mLayoutParams.leftMargin > screenWidth - width;
             destX = sleep ? screenWidth - halfWidth : screenWidth - width;
         }
         if (sleep) {
@@ -294,16 +301,16 @@ public class FloatBall extends FrameLayout implements ICarrier {
     }
 
     private void onMove(int deltaX, int deltaY) {
-        mLayoutParams.x += deltaX;
-        mLayoutParams.y += deltaY;
+        mLayoutParams.leftMargin += deltaX;
+        mLayoutParams.topMargin += deltaY;
         if (windowManager != null) {
             windowManager.updateViewLayout(this, mLayoutParams);
         }
     }
 
     public void onLocation(int x, int y) {
-        mLayoutParams.x = x;
-        mLayoutParams.y = y;
+        mLayoutParams.leftMargin = x;
+        mLayoutParams.topMargin= y;
         if (windowManager != null) {
             windowManager.updateViewLayout(this, mLayoutParams);
         }
@@ -319,8 +326,8 @@ public class FloatBall extends FrameLayout implements ICarrier {
     }
 
     private void moveTo(int x, int y) {
-        mLayoutParams.x += x - mLayoutParams.x;
-        mLayoutParams.y += y - mLayoutParams.y;
+        mLayoutParams.leftMargin += x - mLayoutParams.leftMargin;
+        mLayoutParams.topMargin += y - mLayoutParams.topMargin;
         if (windowManager != null) {
             windowManager.updateViewLayout(this, mLayoutParams);
         }
@@ -331,9 +338,10 @@ public class FloatBall extends FrameLayout implements ICarrier {
     }
 
     private void onClick() {
-        floatBallManager.floatballX = mLayoutParams.x;
-        floatBallManager.floatballY = mLayoutParams.y;
+        floatBallManager.floatballX = mLayoutParams.leftMargin;
+        floatBallManager.floatballY = mLayoutParams.topMargin;
         floatBallManager.onFloatBallClick();
+
     }
 
     private void removeSleepRunnable() {

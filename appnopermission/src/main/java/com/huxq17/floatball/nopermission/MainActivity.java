@@ -6,6 +6,8 @@ import android.os.Bundle;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.huxq17.floatball.libarary.FloatBallManager;
@@ -18,10 +20,10 @@ import com.huxq17.floatball.libarary.utils.DensityUtil;
 public class MainActivity extends Activity {
     private FloatBallManager mFloatballManager;
 
-    public void showFloatBall(View v) {
+//    public void showFloatBall(View v) {
 //        mFloatballManager.show();
-        setFullScreen(v);
-    }
+//        setFullScreen(v);
+//    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,61 +32,28 @@ public class MainActivity extends Activity {
         boolean showMenu = true;//换成false试试
         initSinglePageFloatball(showMenu);
         //5 如果没有添加菜单，可以设置悬浮球点击事件
-        if (mFloatballManager.getMenuItemSize() == 0) {
+//        if (mFloatballManager.getMenuItemSize() == 0) {
             mFloatballManager.setOnFloatBallClickListener(new FloatBallManager.OnFloatBallClickListener() {
                 @Override
                 public void onFloatBallClick() {
                     toast("点击了悬浮球");
+                    mFloatballManager.closeMenu();
                 }
             });
-        }
+//        }
+
     }
 
     @Override
-    public void onWindowFocusChanged(boolean hasFocus) {
-        super.onWindowFocusChanged(hasFocus);
-    }
-
-    @Override
-    public void onAttachedToWindow() {
-        super.onAttachedToWindow();
-        //只有activity被添加到windowmanager上以后才可以调用show方法。
+    protected void onStart() {
+        super.onStart();
         mFloatballManager.show();
     }
 
     @Override
-    public void onDetachedFromWindow() {
-        super.onDetachedFromWindow();
+    protected void onStop() {
+        super.onStop();
         mFloatballManager.hide();
-    }
-
-    @Override
-    public boolean onTouchEvent(MotionEvent event) {
-        return super.onTouchEvent(event);
-    }
-
-    @Override
-    protected void onUserLeaveHint() {
-        super.onUserLeaveHint();
-    }
-
-    private void quitFullScreen() {
-        final WindowManager.LayoutParams attrs = getWindow().getAttributes();
-        attrs.flags &= (~WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        getWindow().setAttributes(attrs);
-        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
-        isfull = false;
-    }
-
-    private boolean isfull = false;
-
-    public void setFullScreen(View view) {
-        if (isfull == true) {
-            quitFullScreen();
-        } else {
-            getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
-            isfull = true;
-        }
     }
 
     private void initSinglePageFloatball(boolean showMenu) {
@@ -102,11 +71,13 @@ public class MainActivity extends Activity {
             FloatMenuCfg menuCfg = new FloatMenuCfg(menuSize, menuItemSize);
             //3 生成floatballManager
             //必须传入Activity
-            mFloatballManager = new FloatBallManager(this, ballCfg, menuCfg);
+//            mFloatballManager = new FloatBallManager(this,  ballCfg, menuCfg);
+            mFloatballManager = new FloatBallManager(this, (RelativeLayout) findViewById(R.id.parentlayout), ballCfg, menuCfg);
             addFloatMenuItem();
         } else {
             //必须传入Activity
-            mFloatballManager = new FloatBallManager(this, ballCfg);
+            mFloatballManager = new FloatBallManager(this,(RelativeLayout) findViewById(R.id.parentlayout), ballCfg);
+//            mFloatballManager = new FloatBallManager(this,(RelativeLayout) findViewById(R.id.parentlayout), ballCfg);
         }
     }
 
@@ -145,8 +116,4 @@ public class MainActivity extends Activity {
     }
 
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-    }
 }

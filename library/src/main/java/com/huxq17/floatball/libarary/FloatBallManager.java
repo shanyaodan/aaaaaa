@@ -7,6 +7,8 @@ import android.graphics.Point;
 import android.os.Build;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 
 import com.huxq17.floatball.libarary.floatball.FloatBall;
 import com.huxq17.floatball.libarary.floatball.FloatBallCfg;
@@ -28,38 +30,40 @@ public class FloatBallManager {
     private Context mContext;
     private FloatBall floatBall;
     private FloatMenu floatMenu;
-    private StatusBarView statusBarView;
+//    private StatusBarView statusBarView;
     public int floatballX, floatballY;
     private boolean isShowing = false;
     private List<MenuItem> menuItems = new ArrayList<>();
     private Activity mActivity;
-
-    public FloatBallManager(Context application, FloatBallCfg ballCfg) {
-        this(application, ballCfg, null);
+    private RelativeLayout parentView;
+    public FloatBallManager(Context application, RelativeLayout parentView, FloatBallCfg ballCfg) {
+        this(application,parentView, ballCfg, null);
     }
 
-    public FloatBallManager(Context application, FloatBallCfg ballCfg, FloatMenuCfg menuCfg) {
+    public FloatBallManager(Context application, RelativeLayout parentView, FloatBallCfg ballCfg, FloatMenuCfg menuCfg) {
         mContext = application.getApplicationContext();
         FloatBallUtil.inSingleActivity = false;
+        this.parentView = parentView;
         mWindowManager = (WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE);
         computeScreenSize();
         floatBall = new FloatBall(mContext, this, ballCfg);
         floatMenu = new FloatMenu(mContext, this, menuCfg);
-        statusBarView = new StatusBarView(mContext, this);
+//        statusBarView = new StatusBarView(mContext, this);
     }
 
-    public FloatBallManager(Activity activity, FloatBallCfg ballCfg) {
-        this(activity, ballCfg, null);
+    public FloatBallManager(Activity activity, RelativeLayout parentView, FloatBallCfg ballCfg) {
+        this(activity,parentView, ballCfg, null);
     }
 
-    public FloatBallManager(Activity activity, FloatBallCfg ballCfg, FloatMenuCfg menuCfg) {
+    public FloatBallManager(Activity activity,  RelativeLayout parentView, FloatBallCfg ballCfg, FloatMenuCfg menuCfg) {
         mActivity = activity;
+        this.parentView = parentView;
         FloatBallUtil.inSingleActivity = true;
         mWindowManager = (WindowManager) mActivity.getSystemService(Context.WINDOW_SERVICE);
         computeScreenSize();
         floatBall = new FloatBall(mActivity, this, ballCfg);
         floatMenu = new FloatMenu(mActivity, this, menuCfg);
-        statusBarView = new StatusBarView(mActivity, this);
+//        statusBarView = new StatusBarView(mActivity, this);
     }
 
     public void buildMenu() {
@@ -114,7 +118,8 @@ public class FloatBallManager {
     }
 
     public int getStatusBarHeight() {
-        return statusBarView.getStatusBarHeight();
+        return mScreenHeight-parentView.getMeasuredHeight();
+//        return statusBarView.getStatusBarHeight();
     }
 
     public void onStatusBarHeightChange() {
@@ -134,9 +139,9 @@ public class FloatBallManager {
         if (isShowing) return;
         isShowing = true;
         floatBall.setVisibility(View.VISIBLE);
-        statusBarView.attachToWindow(mWindowManager);
-        floatBall.attachToWindow(mWindowManager);
-        floatMenu.detachFromWindow(mWindowManager);
+//        statusBarView.attachToWindow(parentView);
+        floatBall.attachToWindow(parentView);
+        floatMenu.detachFromWindow(parentView);
     }
 
     public void closeMenu() {
@@ -146,12 +151,13 @@ public class FloatBallManager {
     public void reset() {
         floatBall.setVisibility(View.VISIBLE);
         floatBall.postSleepRunnable();
-        floatMenu.detachFromWindow(mWindowManager);
+        floatMenu.detachFromWindow(parentView);
     }
 
     public void onFloatBallClick() {
-        if (menuItems != null && menuItems.size() > 0) {
-            floatMenu.attachToWindow(mWindowManager);
+        
+        if (menuItems != null && menuItems.size() > 0&&!floatMenu.isExpanded()) {
+            floatMenu.attachToWindow(parentView);
         } else {
             if (mFloatballClickListener != null) {
                 mFloatballClickListener.onFloatBallClick();
@@ -162,10 +168,17 @@ public class FloatBallManager {
     public void hide() {
         if (!isShowing) return;
         isShowing = false;
-        floatBall.detachFromWindow(mWindowManager);
-        floatMenu.detachFromWindow(mWindowManager);
-        statusBarView.detachFromWindow(mWindowManager);
+        floatBall.detachFromWindow(parentView);
+        floatMenu.detachFromWindow(parentView);
+//        statusBarView.detachFromWindow(mWindowManager);
     }
+
+    public boolean isMenuShow(){
+
+
+        return null==floatMenu?false:floatMenu.isExpanded();
+    }
+
 
     public void onConfigurationChanged(Configuration newConfig) {
         computeScreenSize();

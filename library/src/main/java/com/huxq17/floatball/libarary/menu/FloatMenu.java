@@ -28,6 +28,7 @@ import android.view.ViewTreeObserver;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 
 import com.huxq17.floatball.libarary.FloatBallManager;
 import com.huxq17.floatball.libarary.FloatBallUtil;
@@ -42,7 +43,7 @@ public class FloatMenu extends FrameLayout {
     private int mDuration = 250;
 
     private FloatBallManager floatBallManager;
-    private WindowManager.LayoutParams mLayoutParams;
+    private RelativeLayout.LayoutParams mLayoutParams;
     private boolean isAdded = false;
     private int mBallSize;
     private FloatMenuCfg mConfig;
@@ -97,11 +98,11 @@ public class FloatMenu extends FrameLayout {
         return super.onTouchEvent(event);
     }
 
-    public void attachToWindow(WindowManager windowManager) {
+    public void attachToWindow(RelativeLayout windowManager) {
         if (!isAdded) {
             mBallSize = floatBallManager.getBallSize();
-            mLayoutParams.x = floatBallManager.floatballX;
-            mLayoutParams.y = floatBallManager.floatballY - mSize / 2;
+            mLayoutParams.leftMargin = floatBallManager.floatballX;
+            mLayoutParams.topMargin= floatBallManager.floatballY - mSize / 2;
             mPosition = computeMenuLayout(mLayoutParams);
             refreshPathMenu(mPosition);
             toggle(mDuration);
@@ -110,12 +111,12 @@ public class FloatMenu extends FrameLayout {
         }
     }
 
-    public void detachFromWindow(WindowManager windowManager) {
+    public void detachFromWindow(RelativeLayout windowManager) {
         if (isAdded) {
             toggle(0);
             mMenuLayout.setVisibility(GONE);
             if (getContext() instanceof Activity) {
-                windowManager.removeViewImmediate(this);
+                windowManager.removeView(this);
             } else {
                 windowManager.removeView(this);
             }
@@ -171,6 +172,11 @@ public class FloatMenu extends FrameLayout {
             toggle(mDuration);
         }
     }
+    public boolean isExpanded() {
+        return mMenuLayout.isExpanded();
+    }
+
+
 
     public void remove() {
         floatBallManager.reset();
@@ -280,7 +286,7 @@ public class FloatMenu extends FrameLayout {
      *
      * @return
      */
-    public int computeMenuLayout(WindowManager.LayoutParams layoutParams) {
+    public int computeMenuLayout(RelativeLayout.LayoutParams layoutParams) {
         int position = FloatMenu.RIGHT_CENTER;
         final int halfBallSize = mBallSize / 2;
         final int screenWidth = floatBallManager.mScreenWidth;
@@ -317,8 +323,8 @@ public class FloatMenu extends FrameLayout {
                 wmY = floatballCenterY - mSize / 2;
             }
         }
-        layoutParams.x = wmX;
-        layoutParams.y = wmY;
+        layoutParams.leftMargin = wmX;
+        layoutParams.topMargin = wmY;
         return position;
     }
 

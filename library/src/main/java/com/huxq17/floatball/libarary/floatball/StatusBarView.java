@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.RelativeLayout;
 
 import com.huxq17.floatball.libarary.FloatBallManager;
 import com.huxq17.floatball.libarary.FloatBallUtil;
@@ -12,7 +13,7 @@ public class StatusBarView extends View {
 
     private Context mContext;
     private FloatBallManager mFloatBallManager;
-    private WindowManager.LayoutParams mLayoutParams;
+    private RelativeLayout.LayoutParams mLayoutParams;
     private boolean isAdded;
     private OnLayoutChangeListener layoutChangeListener = new OnLayoutChangeListener() {
         @Override
@@ -29,7 +30,7 @@ public class StatusBarView extends View {
         mLayoutParams = FloatBallUtil.getStatusBarLayoutParams(context);
     }
 
-    public void attachToWindow(WindowManager wm) {
+    public void attachToWindow(RelativeLayout wm) {
         if (!isAdded) {
             addOnLayoutChangeListener(layoutChangeListener);
             wm.addView(this, mLayoutParams);
@@ -37,12 +38,12 @@ public class StatusBarView extends View {
         }
     }
 
-    public void detachFromWindow(WindowManager windowManager) {
+    public void detachFromWindow(RelativeLayout windowManager) {
         if (!isAdded) return;
         isAdded = false;
         removeOnLayoutChangeListener(layoutChangeListener);
         if (getContext() instanceof Activity) {
-            windowManager.removeViewImmediate(this);
+            windowManager.removeView(this);
         } else {
             windowManager.removeView(this);
         }
